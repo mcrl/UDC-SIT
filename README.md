@@ -31,7 +31,7 @@ Copyright 2023 Thunder Research Group Limited
 All software for benchmark Deep Neural Network (DNN) models adheres to the license of the original authors. You can find the original source codes and their respective licenses for ECFNet, UDC-UNet, DISCNet, and Uformer in the links below.
 - ECFNet (https://github.com/zhuyr97/ECFNet)
 - UDC-UNet (https://github.com/J-FHu/UDCUNet)
-- DSCNet (https://github.com/jnjaby/DISCNet)
+- DISCNet (https://github.com/jnjaby/DISCNet)
 - Uformer (https://github.com/ZhendongWang6/Uformer)
 
 In addition, UDC-SIT is licensed under the Creative Commons Attribution-ShareAlike-NonCommercial 4.0 International License (BY-SA-NC 4.0). This means that you are allowed to freely utilize, share, and modify this work under the condition of properly attributing the original author, distributing any derived works under the same license, and utilizing it exclusively for non-commercial purposes.
