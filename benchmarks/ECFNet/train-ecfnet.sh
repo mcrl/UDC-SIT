@@ -2,8 +2,7 @@
 
 loss_lambda=$1
 if [[ -z $loss_lambda ]]; then
-    echo "Usage: $0 <loss_lambda>"
-    exit 1
+    loss_lambda=0.5
 fi
 
 echo "$0 loss lambda $loss_lambda started Phase 1"
