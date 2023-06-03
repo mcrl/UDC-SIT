@@ -95,15 +95,14 @@ def main():
     parser.add_argument(
         "--loss-lambda", type=float, default=0.5, choices=[0.5, 0.1, 0.01]
     )
+    parser.add_argument("--test-input", type=str, default="data/test/input")
+    parser.add_argument("--test-GT", type=str, default="data/test/GT")
     args = parser.parse_args()
 
     # loss_lambda = args.loss_lambda
     loss_lambda = 0.5
 
-    test_dataset = my_dataset_eval(
-        "/data/s0/udc/dataset/UDC_SIT/npy/test1/input",
-        "/data/s0/udc/dataset/UDC_SIT/npy/test1/GT",
-    )
+    test_dataset = my_dataset_eval(args.test_input, args.test_GT)
 
     model = ECFNet(in_nc=4, out_nc=4).to(0)
     model_path = f"experiments/ECFNet-3-{loss_lambda}/model_latest.pth"
