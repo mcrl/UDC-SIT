@@ -376,7 +376,8 @@ def main():
     args = parser.parse_args()
 
     torch.manual_seed(42)
-    torch.set_float32_matmul_precision("medium")
+    # torch.set_float32_matmul_precision("medium")
+    torch.set_float32_matmul_precision("highest")
 
     WORLD_SIZE = 4  # in our case, we have 4 GPUs
     # WORLD_SIZE = torch.cuda.device_count()
