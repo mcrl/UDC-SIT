@@ -18,3 +18,4 @@ torch
 torchvision
 mmcv-full==1.7.1
 packaging
+six
