@@ -1,5 +1,14 @@
 # UDC-SIT benchmark: ECFNet
 
+## Modifications
+
++ We apply normalization, instead of tone mapping. Check [`_tonemap`](datasets/dataset_pairs_npy.py) function.
++ We add one channel to the input channel of the first block and the output channel of the last block. 
++ We dynamically change `base_channel` of the model with `in_nc * 8`. As UDC-SIT images have 4 channels, `base_channel` is set to `32`.
++ We provide our own version of train script, as we wrote the train script from the scratch.
++ The modification regarding batchsizes are descripted in [`train-ecfnet.sh`](train-ecfnet.sh).
++ We specify several modules that will not save intermediate results in the device. Check this modules [here](train.py).
+
 ## Dependencies
 
 + Python>=3.8
