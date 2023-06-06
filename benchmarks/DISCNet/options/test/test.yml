@@ -35,7 +35,7 @@ network_g:
 
 # path
 path:
-  pretrain_model: experiments/DISCNet-SIT4-Benchmark/models/latest_G.pth
+  pretrain_model_g: experiments/DISCNet-SIT4-Benchmark/models/latest_G.pth
   strict_load: true
 
 # validation settings
