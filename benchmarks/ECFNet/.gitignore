@@ -1,2 +1,6 @@
 experiments/
 results/
+
+*.sh
+!train.sh
+!test.sh

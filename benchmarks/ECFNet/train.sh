@@ -9,7 +9,7 @@ echo "$0 loss lambda $loss_lambda started Phase 1"
 
 train_input="data/training/input"
 train_gt="data/training/GT"
-val_input="data/validation/input"
+val_input="data/validationq/input"
 val_gt="data/validation/GT"
 
 step_1="ECFNet-1-${loss_lambda}"
