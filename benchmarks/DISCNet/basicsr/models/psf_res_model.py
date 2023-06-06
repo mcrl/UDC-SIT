@@ -304,7 +304,7 @@ class PSFResModel(BaseModel):
                                              img_name,
                                              f'{img_name}_{current_iter}.npy')
                 else:
-                    if self.opt['val']['suffix']:
+                    if self.opt['val'].get("suffix"):
                         save_img_path = osp.join(
                             self.opt['path']['visualization'], dataset_name,
                             f'{img_name}_{self.opt["val"]["suffix"]}.npy')

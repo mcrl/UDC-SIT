@@ -28,23 +28,6 @@ from basicsr.utils import (
 from basicsr.utils.options import dict2str, parse
 
 
-def write_info_file(info_filepath: str, psf_kernel_path: str):
-    with open(info_filepath, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    lines = [line.strip().split(" ") for line in lines]
-    if len(lines[0]) > 1:
-        return
-
-    content = ""
-
-    for line in lines:
-        content += f"{line[0]} {psf_kernel_path}\n"
-
-    with open(info_filepath, "w", encoding="utf-8") as f:
-        f.write(content)
-
-
 def scandir(dir_path, suffix=None, recursive=False, full_path=False):
     """Scan a directory to find the interested files.
 
@@ -132,19 +115,6 @@ def main():
     parser.add_argument("--auto-resume", action="store_true", default=False)
     args = parser.parse_args()
     opt = parse(args.opt, is_train=True)
-
-    train_folders = opt["datasets"]["train"]["folders"]
-    for folder in train_folders.keys():
-        folder_opts = train_folders[folder]
-        info_path = folder_opts["meta_info_file"]
-        psf_path = folder_opts["psf_path"]
-        write_info_file(info_path, psf_path)
-    validation_folders = opt["datasets"]["val"]["folders"]
-    for folder in validation_folders.keys():
-        folder_opts = validation_folders[folder]
-        info_path = folder_opts["meta_info_file"]
-        psf_path = folder_opts["psf_path"]
-        write_info_file(info_path, psf_path)
 
     # distributed training settings
     if args.launcher == "none":  # non-distributed training
