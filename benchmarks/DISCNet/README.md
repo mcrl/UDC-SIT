@@ -68,3 +68,9 @@ bash train.sh
 ```bash
 bash test.sh
 ```
+
+## License and Acknowledgement
+
+This work is licensed under MIT License. The codes are mainly from following repositories.
+For more information, refer to [original work](https://github.com/jnjaby/DISCNet)
+and [BasicSR](https://github.com/XPixelGroup/BasicSR).
