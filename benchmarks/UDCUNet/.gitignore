@@ -127,3 +127,6 @@ venv.bak/
 
 experiments/
 results/
+*.sh
+!test.sh
+!train.sh
