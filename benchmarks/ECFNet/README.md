@@ -3,7 +3,7 @@
 ## Modifications
 
 + We apply normalization, instead of tone mapping. Check [`_tonemap`](datasets/dataset_pairs_npy.py) function.
-+ We add one channel to the input channel of the first block and the output channel of the last block. 
++ We add one channel to the input channel of the first block and the output channel of the last block.
 + We dynamically change `base_channel` of the model with `in_nc * 8`. As UDC-SIT images have 4 channels, `base_channel` is set to `32`.
 + We provide our own version of train script, as we wrote the train script from the scratch.
 + The modification regarding batchsizes are descripted in [`train-ecfnet.sh`](train-ecfnet.sh).
@@ -45,7 +45,7 @@ bash train-ecfnet.sh
 ### Test
 
 ```bash
-python test.py
+bash test.sh
 ```
 
 ## Miscellaneous Notes
@@ -54,3 +54,9 @@ python test.py
   + Training phase will consume 22GB of device memory at its peak.
 + Our test phase was performed with a single NVIDIA RTX 3090 GPU.
   + Test phase will consume 20GB of device memory at its peak.
+
+## Acknowledgement
+
++ Our work is motivated by open-sourced efforts of [MIMO-UNet](https://github.com/chosj95/MIMO-UNet)
+and [ECFNet](https://github.com/zhuyr97/ECFNet). We appreciate their effort.
+For more detail, refer to aforementioned repositories.
