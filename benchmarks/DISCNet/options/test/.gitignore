@@ -1,3 +1,2 @@
 *.yml
-!DISCNet_test_*_data.yml
-!DISCNet-Image-FFTLoss-Validation.yml
+!test.yml

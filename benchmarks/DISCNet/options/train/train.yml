@@ -1,0 +1,129 @@
+# general settings
+name: DISCNet-SIT4-Benchmark
+model_type: PSFResModel
+scale: 1
+num_gpu: 4
+manual_seed: 10
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: UDC-SIT-Train
+    type: PairedImgPSFNpyDataset
+    # Mapping config for SIT: we divide input by 1023.
+    lq_map_type: norm
+    gt_map_type: norm
+    lq_map_range: 1023.
+    gt_map_range: 1023.
+    filename_tmpl: '{}'
+    io_backend:
+      type: npy
+    folders:
+      udc-sit-train:
+        dataroot_lq: data/UDC_SIT/npy/training/input
+        dataroot_gt: data/UDC_SIT/npy/training/GT
+        meta_info_file: meta-info-files/train-metainfo.txt
+        psf_path: sit-train-psf.npy
+
+    gt_size: 256
+    use_flip: false
+    use_rot: false
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 8  # per GPU
+    batch_size_per_gpu: 8  # total
+    dataset_enlarge_ratio: 20
+    prefetch_mode: cuda
+    pin_memory: true
+
+  val:
+    name: UDC-SIT-Validate
+    type: PairedImgPSFNpyDataset
+    lq_map_type: norm
+    gt_map_type: norm
+    lq_map_range: 1023.
+    gt_map_range: 1023.
+    io_backend:
+      type: npy
+    folders:
+      udc-sit-validate:
+        dataroot_lq: data/UDC_SIT/npy/validation/input
+        dataroot_gt: data/UDC_SIT/npy/validation/GT
+        meta_info_file: meta-info-files/val-metainfo.txt
+        psf_path: sit-train-psf.npy
+
+# network structures
+network_g:
+  type: DISCNet
+  in_nc: 4
+  out_nc: 4
+  nf: 32
+  ns: 4
+  multi_scale: true
+  kernel_cond: img-psf
+  psf_nc: 5
+  kpn_sz: 5
+
+# path
+path:
+  pretrain_model_g: ~
+  strict_load: true
+  resume_state: ~
+
+# training settings
+train:
+  optim_g:
+    type: Adam
+    lr: !!float 2e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: CosineAnnealingRestartLR
+    periods: [200000, 200000, 200000, 200000, 200000]
+    restart_weights: [1, 1, 1, 1, 1]
+    eta_min: !!float 1e-7
+
+  total_iter: 1000000
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+
+# validation settings
+val:
+  val_freq: !!float 10000
+  save_img: true 
+  save_img_ratio: !!float 2 # 0 < value < 1, set 2 to save all images
+  dng_info: background.dng # This info is required to save img file.
+  max_pxl: 1023.
+  clamp:
+    min: 0.
+    max: 1.
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim: # metric name, can be arbitrary
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
+    
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 10000
+  use_tb_logger: false
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29015
