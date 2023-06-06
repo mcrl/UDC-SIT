@@ -20,10 +20,9 @@ datasets:
       type: npy
     folders:
       udc-sit-train:
-        dataroot_lq: data/UDC_SIT/npy/training/input
-        dataroot_gt: data/UDC_SIT/npy/training/GT
+        dataroot_lq: data/training/input
+        dataroot_gt: data/training/GT
         meta_info_file: meta-info-files/train-metainfo.txt
-        psf_path: sit-train-psf.npy
 
     gt_size: 256
     use_flip: false
@@ -48,10 +47,9 @@ datasets:
       type: npy
     folders:
       udc-sit-validate:
-        dataroot_lq: data/UDC_SIT/npy/validation/input
-        dataroot_gt: data/UDC_SIT/npy/validation/GT
+        dataroot_lq: data/validation/input
+        dataroot_gt: data/validation/GT
         meta_info_file: meta-info-files/val-metainfo.txt
-        psf_path: sit-train-psf.npy
 
 # network structures
 network_g:

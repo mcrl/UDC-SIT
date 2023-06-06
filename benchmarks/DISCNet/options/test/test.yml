@@ -16,8 +16,8 @@ datasets:
       type: npy
     folders:
       rot_5:
-        dataroot_lq: data/UDC_SIT/npy/validation1/input
-        dataroot_gt: data/UDC_SIT/npy/validation1/GT
+        dataroot_lq: data/validation/input
+        dataroot_gt: data/validation/GT
         meta_info_file: meta-info-files/test-metainfo.txt
         psf_path: sit-train-psf.npy
 
