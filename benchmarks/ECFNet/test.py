@@ -92,24 +92,28 @@ def test(
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument(
-        "--loss-lambda", type=float, default=0.5, choices=[0.5, 0.1, 0.01]
-    )
+    parser.add_argument("--name", type=str, required=True)
+    parser.add_argument("--model-path", type=str, required=True)
     parser.add_argument("--test-input", type=str, default="data/test/input")
     parser.add_argument("--test-GT", type=str, default="data/test/GT")
     args = parser.parse_args()
 
-    # loss_lambda = args.loss_lambda
-    loss_lambda = 0.5
-
+    print("Creating test dataset...", end=" ", flush=True)
     test_dataset = my_dataset_eval(args.test_input, args.test_GT)
+    print("Done!", flush=True)
 
+    print("Creating model...", end=" ", flush=True)
     model = ECFNet(in_nc=4, out_nc=4).to(0)
-    model_path = f"experiments/ECFNet-3-{loss_lambda}/model_latest.pth"
+    print("Done!", flush=True)
+
+    print("Loading model...", end=" ", flush=True)
+    model_path = args.model_path
     loaded = torch.load(model_path)
     to_load = loaded
     model.load_state_dict(to_load, strict=False)
+    print("Done!", flush=True)
 
+    print("Creating test loader...", end=" ", flush=True)
     test_loader = DataLoader(
         test_dataset,
         batch_size=1,
@@ -118,7 +122,8 @@ def main():
         pin_memory=True,
         drop_last=False,
     )
-    save_dir = f"results/ECFNet-3-{loss_lambda}"
+    print("Done!", flush=True)
+    save_dir = f"results/{args.name}"
     os.makedirs(save_dir, exist_ok=True)
     test(model, test_loader, save_image=True, save_dir=save_dir)
 
