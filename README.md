@@ -11,7 +11,7 @@ UDC is a technology that integrates a camera module beneath the display, allowin
 
 
 # Data versions and structure:
-The repository for this dataset is [UDC-SIT](http://zenodo.org/record/6810792).
+You can download our dataset at [UDC-SIT](https://www.dropbox.com/s/9j0v2nnvr0eo91g/UDC-SIT.tar.gz?dl=0).
 
 
 # How can I use this?
