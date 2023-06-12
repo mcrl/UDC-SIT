@@ -1,4 +1,4 @@
-# UDC-SIT benchmark: UDC-UNet
+# UDC-SIT benchmark: DISCNet
 
 ## Modifications
 
