@@ -59,6 +59,7 @@ def test(
     test_loader: DataLoader,
     save_image=False,
     save_dir=None,
+    experiment_name=None,
 ):
     model.eval()
     ddp_loss = torch.zeros(3).to(0)
@@ -66,7 +67,7 @@ def test(
     iter_bar = tqdm.tqdm(test_loader)
     with torch.no_grad():
         for data, target, img_name in iter_bar:
-            img_name = img_name[0]
+            img_name = img_name[0].split(".")[0]
 
             data, target = data.to(0), target.to(0)
             output = model(data)
@@ -80,7 +81,7 @@ def test(
             ddp_loss[2] += len(data)
 
             if save_image and save_dir is not None:
-                filename = f"{img_name}_{psnr:.4f}_{ssim:.4f}.png"
+                filename = f"{experiment_name}_{img_name}_{psnr:.4f}_{ssim:.4f}.png"
                 _save_4ch_npy_to_img(output, os.path.join(save_dir, filename))
 
     print(
@@ -125,7 +126,13 @@ def main():
     print("Done!", flush=True)
     save_dir = f"results/{args.name}"
     os.makedirs(save_dir, exist_ok=True)
-    test(model, test_loader, save_image=True, save_dir=save_dir)
+    test(
+        model,
+        test_loader,
+        save_image=True,
+        save_dir=save_dir,
+        experiment_name=args.name,
+    )
 
 
 if __name__ == "__main__":
