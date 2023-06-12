@@ -14,6 +14,7 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.distributed.fsdp import (
     FullyShardedDataParallel as FSDP,
     BackwardPrefetch,
+    MixedPrecision,
     ShardingStrategy,
     FullStateDictConfig,
     StateDictType,
@@ -240,8 +241,9 @@ def fsdp_main(rank, world_size, opt):
     model = FSDP(
         model,
         device_id=rank,
-        sharding_strategy=ShardingStrategy.FULL_SHARD,
-        backward_prefetch=BackwardPrefetch.BACKWARD_POST,
+        sharding_strategy=ShardingStrategy.NO_SHARD,
+        backward_prefetch=BackwardPrefetch.BACKWARD_PRE,
+        forward_prefetch=True,
         auto_wrap_policy=my_auto_wrap_policy,
     )
     print_root(rank, f"Created model")
@@ -301,7 +303,7 @@ def fsdp_main(rank, world_size, opt):
         if epoch % opt.save_interval == 0:
             print_root(rank, f"Saving at epoch {epoch}")
             dist.barrier()
-            save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+            save_policy = FullStateDictConfig(offload_to_cpu=False, rank0_only=True)
             with FSDP.state_dict_type(
                 model, StateDictType.FULL_STATE_DICT, save_policy
             ):
@@ -328,7 +330,7 @@ def fsdp_main(rank, world_size, opt):
         lr_scheduler.step()
 
     init_end_event.record()
-    save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+    save_policy = FullStateDictConfig(offload_to_cpu=False, rank0_only=True)
     with FSDP.state_dict_type(model, StateDictType.FULL_STATE_DICT, save_policy):
         cpu_state = model.state_dict()
 
