@@ -1,7 +1,7 @@
 #!/bin/bash
 
-TARGET_H=1000 #1792 
-TARGET_W=1000 #1280
+TARGET_H=1792 
+TARGET_W=1280
 OFFSET=25
 
 for ab in "1"; do 
