@@ -4,6 +4,9 @@ import torch.nn as nn
 import random
 import torchvision
 import numpy as np
+import math
+
+
 ### rotate and flip
 class Augment_RGB_torch:
     def __init__(self):
@@ -50,13 +53,14 @@ class MixUp_AUG:
 
         return rgb_gt, rgb_noisy
 
+
+# This only works for patch size 1280 x 1280, image size 1792 x 1280
 def to_small_batches(input_):
 
     num_img = input_.shape[0]
 
     num_patches_H, num_patches_W = 2, 1
     inputs = None
-
     for i in range(num_img):
         input_batch = input_[i,:,:,:]
         for j in range(num_patches_H):
@@ -65,7 +69,6 @@ def to_small_batches(input_):
                     input_piece = input_batch[:,0:1280,0:1280]
                 else:
                     input_piece = input_batch[:,512:1792,0:1280]
-
                 if i == 0 and j == 0 and k == 0:
                     inputs = input_piece.unsqueeze(dim=0)
                 else:
@@ -73,22 +76,17 @@ def to_small_batches(input_):
 
     return inputs
 
-
+# This only works for patch size 1280 x 1280, image size 1792 x 1280
 def merge_patches(opt, patches, num_img):
-
+    image = torch.zeros((opt.batch_size_val, opt.dd_in, 1792, 1280), dtype=torch.float32)
     num_patches_H, num_patches_W = 2, 1
-    
-    image = torch.zeros((num_img, opt.dd_in, 1792, 1280), dtype=torch.float32)
 
     for i in range(num_img):
         for j in range(num_patches_H):
             for k in range(num_patches_W):
                 if j == 0:
-                    image[i,:,0:896,:] = patches[0,:,0:896,:]
+                    image[i,:,0:896,:] = patches[i*2,:,0:896,:]
                 else:
-                    image[i,:,896:1792,:] = patches[1,:,384:1280,:]
-   
-    center_crop = torchvision.transforms.CenterCrop((opt.H, opt.W))
-    image = center_crop(image)
+                    image[i,:,896:1792,:] = patches[i*2+1,:,384:1280,:]
 
     return image

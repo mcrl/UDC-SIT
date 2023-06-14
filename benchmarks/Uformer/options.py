@@ -25,7 +25,7 @@ class Options():
         parser.add_argument('--arch', type=str, default ='Uformer_B',  help='archtechture')
         parser.add_argument('--mode', type=str, default ='motiondeblur',  help='image restoration mode')
         parser.add_argument('--dd_in', type=int, default=3, help='dd_in')
-        parser.add_argument('--dataset_name', type=str, default='UDC_SIT_RAW', help='dataset type')
+        parser.add_argument('--dataset_name', type=str, default='UDC_SIT', help='dataset type')
         parser.add_argument('--shuffle', type=bool, default=False, help='shuffle')
         parser.add_argument('--data_name', type=str, default='UDC_SIT', help='data_name')
         parser.add_argument('--save_img_iter', type=int, default=1, help='save val imgs for how many iterations')

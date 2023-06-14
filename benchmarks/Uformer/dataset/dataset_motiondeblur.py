@@ -137,7 +137,7 @@ class DataLoaderVal(Dataset):
 
 class DataLoaderVal_deblur(Dataset):
 
-    def __init__(self, rgb_dir, img_options=None, dataset_name=None,rgb_dir2=None):
+    def __init__(self, rgb_dir, img_options=None, dataset_name=None, rgb_dir2=None):
         super(DataLoaderVal_deblur, self).__init__()
 
         inp_files = sorted(os.listdir(os.path.join(rgb_dir, 'input')))
@@ -213,7 +213,7 @@ def get_training_data(opt,rgb_dir, img_options,dataset_name):
 def get_validation_deblur_data(rgb_dir, img_options, dataset_name):
     print(rgb_dir)
     assert os.path.exists(rgb_dir)
-    return DataLoaderVal_deblur(rgb_dir, img_options,dataset_name, None)
+    return DataLoaderVal_deblur(rgb_dir, img_options, dataset_name, None)
 
 def get_test_data(rgb_dir, img_options=None):
     assert os.path.exists(rgb_dir)
