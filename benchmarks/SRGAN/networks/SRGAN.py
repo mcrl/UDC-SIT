@@ -4,8 +4,9 @@ from torch import nn
 
 
 class Generator(nn.Module):
-    def __init__(self, scale_factor, io_channels=3):
-        upsample_block_num = int(math.log(scale_factor, 2))
+    def __init__(self, io_channels=3):
+        # upsample_block_num = int(math.log(scale_factor, 2))  # 0
+        upsample_block_num = 0
         self.io_channels = io_channels
 
         super(Generator, self).__init__()
@@ -67,6 +68,9 @@ class CLBLock(nn.Module):
             in_channel, out_channel, kernel_size, stride, padding, bias=False
         )
         self.lrelu = nn.LeakyReLU(0.2, inplace=True)
+
+    def forward(self, x):
+        return self.lrelu(self.conv(x))
 
 
 class CBLBlock(nn.Module):
