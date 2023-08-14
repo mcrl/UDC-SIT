@@ -63,8 +63,12 @@ class Discriminator(nn.Module):
 class CLBLock(nn.Module):
     def __init__(self, in_channel, out_channel, kernel_size, stride, padding):
         super(CLBLock, self).__init__()
+
+        # Caution: This Conv Layer is not followed by BN layer.
+        # You should keep the bias term.
+
         self.conv = nn.Conv2d(
-            in_channel, out_channel, kernel_size, stride, padding, bias=False
+            in_channel, out_channel, kernel_size, stride, padding, bias=True
         )
         self.lrelu = nn.LeakyReLU(0.2, inplace=True)
 
@@ -107,12 +111,15 @@ class ResidualBlock(nn.Module):
 class UpsampleBLock(nn.Module):
     def __init__(self, in_channels, up_scale):
         super(UpsampleBLock, self).__init__()
+
+        # Caution: This conv layer is not followed by BN layer.
+        # You should keep the bias term.
         self.conv = nn.Conv2d(
             in_channels,
             in_channels * up_scale**2,
             kernel_size=3,
             padding=1,
-            bias=False,
+            bias=True,
         )
         self.pixel_shuffle = nn.PixelShuffle(up_scale)
         self.prelu = nn.PReLU()
