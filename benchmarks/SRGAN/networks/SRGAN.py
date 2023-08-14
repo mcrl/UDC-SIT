@@ -42,38 +42,44 @@ class Discriminator(nn.Module):
         self._is_full_backward_hook
         super(Discriminator, self).__init__()
         self.net = nn.Sequential(
-            nn.Conv2d(io_channels, 64, kernel_size=3, padding=1),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(256, 512, kernel_size=3, padding=1),
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(0.2),
+            CLBLock(io_channels, 64, 3, 1, 1),
+            CBLBlock(64, 64, 3, 2, 1),
+            CBLBlock(64, 128, 3, 1, 1),
+            CBLBlock(128, 128, 3, 2, 1),
+            CBLBlock(128, 256, 3, 1, 1),
+            CBLBlock(256, 256, 3, 2, 1),
+            CBLBlock(256, 512, 3, 1, 1),
+            CBLBlock(512, 512, 3, 2, 1),
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(512, 1024, kernel_size=1),
-            nn.LeakyReLU(0.2),
+            CLBLock(512, 1024, 1, 1, 0),
             nn.Conv2d(1024, 1, kernel_size=1),
         )
 
     def forward(self, x):
         batch_size = x.size(0)
         return torch.sigmoid(self.net(x).view(batch_size))
+
+
+class CLBLock(nn.Module):
+    def __init__(self, in_channel, out_channel, kernel_size, stride, padding):
+        super(CLBLock, self).__init__()
+        self.conv = nn.Conv2d(
+            in_channel, out_channel, kernel_size, stride, padding, bias=False
+        )
+        self.lrelu = nn.LeakyReLU(0.2, inplace=True)
+
+
+class CBLBlock(nn.Module):
+    def __init__(self, in_channel, out_channel, kernel_size, stride, padding):
+        super(CBLBlock, self).__init__()
+        self.conv = nn.Conv2d(
+            in_channel, out_channel, kernel_size, stride, padding, bias=False
+        )
+        self.bn = nn.BatchNorm2d(out_channel)
+        self.lrelu = nn.LeakyReLU(0.2, inplace=True)
+
+    def forward(self, x):
+        return self.lrelu(self.bn(self.conv(x)))
 
 
 class ResidualBlock(nn.Module):
