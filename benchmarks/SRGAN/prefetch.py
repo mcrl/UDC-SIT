@@ -11,6 +11,9 @@ args = parser.parse_args()
 dirpath = args.prefetch_dir
 dirpath = osp.abspath(dirpath)
 files = os.listdir(dirpath)
+
+print(f"Prefetching {len(files)} files from {dirpath}...")
 for file in tqdm(files):
     filepath = osp.join(dirpath, file)
     _ = np.load(filepath)
+print(f"PREFETCHED {len(files)} files from {dirpath}")
