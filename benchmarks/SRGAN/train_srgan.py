@@ -176,6 +176,7 @@ def load_states(experiment_name: str):
 
 def fsdp_main(rank, world_size, opt):
     setup(rank, world_size)
+    torch.cuda.set_device(rank)
     print_root(rank, f"Running on rank {rank} of {world_size}")
 
     train_dataset = my_dataset(
@@ -220,7 +221,7 @@ def fsdp_main(rank, world_size, opt):
         "num_workers": 2,
         "pin_memory": True,
         "shuffle": False,
-        "pin_memory_device": rank,
+        "pin_memory_device": f"cuda:{rank}",
     }
     train_kwargs.update(cuda_kwargs)
     test_kwargs.update(cuda_kwargs)
@@ -237,7 +238,6 @@ def fsdp_main(rank, world_size, opt):
     my_auto_wrap_policy = functools.partial(
         size_based_auto_wrap_policy, min_num_params=128
     )
-    torch.cuda.set_device(rank)
 
     init_start_event = torch.cuda.Event(enable_timing=True)
     init_end_event = torch.cuda.Event(enable_timing=True)
@@ -246,7 +246,7 @@ def fsdp_main(rank, world_size, opt):
     use_perception_loss = True if channels == 3 else False
     Gmodel = Generator(io_channels=channels).to(rank)
     Dmodel = Discriminator(io_channels=channels).to(rank)
-    
+
     # Activation Checkpoint Wrapper
     if opt.aggressive_checkpointing:
         blocks = [ResidualBlock, UpsampleBLock, CLBLock, CBLBlock]
@@ -277,6 +277,15 @@ def fsdp_main(rank, world_size, opt):
     #
     # Create Generator Loss
     #
+
+    # only rank 0 is allowed to download VGG16 pretrained model
+    if rank == 0:
+        GLoss = GeneratorLoss(use_perception_loss=use_perception_loss)
+
+    # other ranks wait for rank 0 to finish downloading
+    dist.barrier()
+
+    # other ranks create GLoss
     GLoss = GeneratorLoss(use_perception_loss=use_perception_loss).to(rank)
 
     #
@@ -291,23 +300,28 @@ def fsdp_main(rank, world_size, opt):
     print_root(rank, f"Created lr scheduler")
 
     save_path = Path(f"experiments/{opt.experiment_name}")
-    model_dir = opt.pretrained_model
+    checkpoint_path = save_path / "checkpoints"
+    final_path = save_path / "final"
+    checkpoint_path.mkdir(parents=True, exist_ok=True)
+    final_path.mkdir(parents=True, exist_ok=True)
+
+    model_dir = opt.pretrained_model_dir
     if model_dir is not None:
         model_dirpath = Path(model_dir)
         if model_dirpath.exists():
             Gmodel_path = model_dirpath / "Gmodel.pth"
             Dmodel_path = model_dirpath / "Dmodel.pth"
-            Gmodel_state = torch.load(Gmodel_path)
-            Dmodel_state = torch.load(Dmodel_path)
-            print_root(rank, f"Loaded pretrained model from {model_dirpath}")
+            if Gmodel_path.exists():
+                Gmodel_state = torch.load(Gmodel_path)
+                Gmodel.load_state_dict(Gmodel_state, strict=False)
+                print_root(rank, f"Loaded pretrained Generator model from {model_dir}")
+            if Dmodel_path.exists():
+                Dmodel_state = torch.load(Dmodel_path)
+                Dmodel.load_state_dict(Dmodel_state, strict=False)
+                print_root(
+                    rank, f"Loaded pretrained Discriminator model from {model_dir}"
+                )
     start_epoch = 1
-
-    if Gmodel_state is not None:
-        Gmodel.load_state_dict(Gmodel_state, strict=False)
-        print_root(rank, f"Loaded pretrained Generator model")
-    if Dmodel_state is not None:
-        Dmodel.load_state_dict(Dmodel_state, strict=False)
-        print_root(rank, f"Loaded pretrained Discriminator model")
 
     # calculate num epochs and iteration per epoch
     iterations = opt.num_iterations
@@ -349,22 +363,27 @@ def fsdp_main(rank, world_size, opt):
             ):
                 cpu_state = Gmodel.state_dict()
                 gmodel_save_path = os.path.join(
-                    save_path, f"Gmodel_epoch_{epoch:03}.pth"
+                    checkpoint_path, f"Gmodel_epoch_{epoch:03}.pth"
                 )
                 if rank == 0:
                     torch.save(cpu_state, gmodel_save_path)
-                    torch.save(cpu_state, os.path.join(save_path, f"Gmodel_latest.pth"))
+                    torch.save(
+                        cpu_state,
+                        os.path.join(checkpoint_path, f"Gmodel_latest.pth"),
+                    )
 
             with FSDP.state_dict_type(
                 Dmodel, StateDictType.FULL_STATE_DICT, save_policy
             ):
                 cpu_state = Dmodel.state_dict()
                 dmodel_save_path = os.path.join(
-                    save_path, f"Dmodel_epoch_{epoch:03}.pth"
+                    checkpoint_path, f"Dmodel_epoch_{epoch:03}.pth"
                 )
                 if rank == 0:
                     torch.save(cpu_state, dmodel_save_path)
-                    torch.save(cpu_state, os.path.join(save_path, f"Dmodel_latest.pth"))
+                    torch.save(
+                        cpu_state, os.path.join(checkpoint_path, f"Dmodel_latest.pth")
+                    )
             dist.barrier()
 
     init_end_event.record()
@@ -376,7 +395,7 @@ def fsdp_main(rank, world_size, opt):
             print(f"Saving final model")
             torch.save(
                 cpu_state,
-                os.path.join(save_path, "final", "Gmodel.pth"),
+                os.path.join(final_path, "Gmodel.pth"),
             )
 
     with FSDP.state_dict_type(Dmodel, StateDictType.FULL_STATE_DICT, save_policy):
@@ -385,7 +404,7 @@ def fsdp_main(rank, world_size, opt):
             print(f"Saving final model")
             torch.save(
                 cpu_state,
-                os.path.join(save_path, "final", "Dmodel.pth"),
+                os.path.join(final_path, "Dmodel.pth"),
             )
 
     cleanup()
@@ -403,7 +422,7 @@ def main():
     model_group.add_argument("--channels", type=int, default=3)
 
     train_group = parser.add_argument_group("Training Options")
-    train_group.add_argument("--batch-size", type=int, default=1)
+    train_group.add_argument("--batch-size", type=int, default=4)
     train_group.add_argument("--num-iterations", type=int, default=int(2e5))
     train_group.add_argument("--lr", type=float, default=1e-4)
     train_group.add_argument("--patch-size", type=int, default=256)
@@ -413,14 +432,14 @@ def main():
 
     trainer_group = parser.add_argument_group("Trainer Options")
     trainer_group.add_argument("--num-workers", type=int, default=8)
-    trainer_group.add_argument("--validation-interval", type=int, default=5)
+    trainer_group.add_argument("--validation-interval", type=int, default=100)
     trainer_group.add_argument("--limit-train-batches", type=int, default=1.0)
     trainer_group.add_argument("--limit-val-batches", type=int, default=1.0)
     trainer_group.add_argument("--aggressive-checkpointing", action="store_true")
 
     saving_group = parser.add_argument_group("Experiment Saving")
     saving_group.add_argument("--experiment-name", type=str, default="SRGAN")
-    saving_group.add_argument("--save-interval", type=int, default=20)
+    saving_group.add_argument("--save-interval", type=int, default=100)
 
     load_group = parser.add_argument_group("Experiment Loading")
     load_group.add_argument(
