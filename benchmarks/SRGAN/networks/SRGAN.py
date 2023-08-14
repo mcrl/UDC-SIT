@@ -40,7 +40,6 @@ class Generator(nn.Module):
 
 class Discriminator(nn.Module):
     def __init__(self, io_channels=3):
-        self._is_full_backward_hook
         super(Discriminator, self).__init__()
         self.net = nn.Sequential(
             CLBLock(io_channels, 64, 3, 1, 1),
@@ -89,10 +88,10 @@ class CBLBlock(nn.Module):
 class ResidualBlock(nn.Module):
     def __init__(self, channels):
         super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(channels)
         self.prelu = nn.PReLU()
-        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(channels)
 
     def forward(self, x):
@@ -109,7 +108,11 @@ class UpsampleBLock(nn.Module):
     def __init__(self, in_channels, up_scale):
         super(UpsampleBLock, self).__init__()
         self.conv = nn.Conv2d(
-            in_channels, in_channels * up_scale**2, kernel_size=3, padding=1
+            in_channels,
+            in_channels * up_scale**2,
+            kernel_size=3,
+            padding=1,
+            bias=False,
         )
         self.pixel_shuffle = nn.PixelShuffle(up_scale)
         self.prelu = nn.PReLU()
