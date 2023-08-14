@@ -1,0 +1,11 @@
+experiments/
+experiments
+
+results/
+results
+
+
+
+*.sh
+!train.sh
+!test.sh
