@@ -26,6 +26,7 @@ def test(
     save_dir=None,
     experiment_name=None,
 ):
+    global img_save_function
     model.eval()
     ddp_loss = torch.zeros(3).to(0)
 
@@ -48,6 +49,7 @@ def test(
             if save_image and save_dir is not None:
                 filename = f"{experiment_name}_{img_name}_{psnr:.4f}_{ssim:.4f}.png"
                 img_save_function(output, os.path.join(save_dir, filename))
+            break
 
     print(
         "Test set: Average PSNR: {:.4f}, Average SSIM: {:.4f}".format(
@@ -57,20 +59,23 @@ def test(
 
 
 def main():
+    global img_save_function
+
     parser = ArgumentParser()
     parser.add_argument("--name", type=str, required=True)
     parser.add_argument("--model-path", type=str, required=True)
     parser.add_argument("--test-input", type=str, default="data/test/input")
     parser.add_argument("--test-GT", type=str, default="data/test/GT")
     parser.add_argument("--channels", type=int, default=3)
+    parser.add_argument("--norm", type=str, required=True, choices=["norm", "tonemap"])
     args = parser.parse_args()
 
     print("Creating test dataset...", end=" ", flush=True)
-    test_dataset = my_dataset_eval(args.test_input, args.test_GT)
+    test_dataset = my_dataset_eval(args.test_input, args.test_GT, args.norm)
     print("Done!", flush=True)
 
     print("Setup image save function...", end=" ", flush=True)
-    setup_img_save_function(args.channels)
+    img_save_function = setup_img_save_function(args.channels)
 
     print("Creating model...", end=" ", flush=True)
     model = Generator(io_channels=args.channels).to(0)
@@ -88,8 +93,9 @@ def main():
         test_dataset,
         batch_size=1,
         shuffle=False,
-        num_workers=4,
+        num_workers=8,
         pin_memory=True,
+        pin_memory_device="cuda:0",
         drop_last=False,
     )
     print("Done!", flush=True)
