@@ -1,6 +1,8 @@
 import rawpy as rp
 import imageio
 import torch
+import numpy as np
+from PIL import Image
 
 
 def save_4ch_npy_to_img(
@@ -41,17 +43,38 @@ def save_4ch_npy_to_img(
     imageio.imsave(img_path, output)
 
 
-def save_3ch_npy_to_img(img_ts: torch.Tensor, img_path: str):
-    pass
+def save_3ch_npy_to_img(tensor: torch.Tensor, img_path: str):
+    # squeeze
+    tensor = tensor.squeeze(0)
+
+    # Convert PyTorch tensor to NumPy array
+    numpy_array = tensor.cpu().numpy()
+
+    # Normalize and convert to uint8 type
+    minimum = numpy_array.min()
+    maximum = numpy_array.max()
+    print(minimum, maximum)
+    normalized_array = (numpy_array - minimum) / (maximum - minimum) * 255
+    print(normalized_array.shape)
+    print(normalized_array.dtype)
+
+    # Convert to uint8 type
+    uint8_array = normalized_array.astype(np.uint8)
+
+    # Convert NumPy array to PIL Image
+    pil_image = Image.fromarray(uint8_array)
+
+    # Save PIL Image as PNG
+    pil_image.save(img_path)
 
 
 def setup_img_save_function(channels: int):
     global img_save_function
     if channels == 3:
         print("Setting up 3 channel image save function")
-        img_save_function = save_3ch_npy_to_img
+        return save_3ch_npy_to_img
     elif channels == 4:
         print("Setting up 4 channel image save function")
-        img_save_function = save_4ch_npy_to_img
+        return save_4ch_npy_to_img
     else:
         raise ValueError("Channels must be 3 or 4")
