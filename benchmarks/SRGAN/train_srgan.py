@@ -85,6 +85,8 @@ def train(
         #
         # (1) Update Discriminator Network
         #
+        Dmodel.zero_grad()
+        Gmodel.zero_grad()
         real_out = Dmodel(target)
         lossD_real = bceloss(real_out, torch.ones_like(real_out))
         lossD_real.backward()
@@ -99,6 +101,7 @@ def train(
         # (2) Update Generator Network
         #
 
+        Gmodel.zero_grad()
         fake_out = Dmodel(fake_img)
         lossG = Gloss_criterion(fake_out, fake_img, target)
         lossG.backward()
