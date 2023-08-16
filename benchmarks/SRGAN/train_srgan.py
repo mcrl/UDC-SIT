@@ -38,6 +38,8 @@ from torchmetrics.functional import (
     structural_similarity_index_measure,
 )
 
+bceloss = nn.BCELoss()
+
 
 def print_root(rank, msg):
     if rank == 0:
@@ -71,7 +73,7 @@ def train(
     Gloss_criterion,
     sampler=None,
 ):
-    ddp_loss = torch.zeros(3).to(rank)
+    ddp_loss = torch.zeros(4).to(rank)
     if sampler:
         sampler.set_epoch(epoch)
 
@@ -83,38 +85,42 @@ def train(
         #
         # (1) Update Discriminator Network
         #
-        fake_img = Gmodel(data)
+        real_out = Dmodel(target)
+        lossD_real = bceloss(real_out, torch.ones_like(real_out))
+        lossD_real.backward()
 
-        Dmodel.zero_grad()
-        real_out = Dmodel(target).mean()
-        fake_out = Dmodel(fake_img).mean()
-        d_loss = 1 - real_out + fake_out
-        d_loss.backward(retain_graph=True)
+        fake_img = Gmodel(data)
+        fake_out = Dmodel(fake_img.detach())
+        lossD_fake = bceloss(fake_out, torch.zeros_like(fake_out))
+        lossD_fake.backward()
         Dopt.step()
 
         #
         # (2) Update Generator Network
         #
 
-        Gmodel.zero_grad()
-        fake_img = Gmodel(data)
-        fake_out = Dmodel(fake_img).mean()
-        g_loss = Gloss_criterion(fake_out, fake_img, target)
-        g_loss.backward()
+        fake_out = Dmodel(fake_img)
+        lossG = Gloss_criterion(fake_out, fake_img, target)
+        lossG.backward()
+
         Gopt.step()
 
-        ddp_loss[0] += d_loss.item()
-        ddp_loss[1] += g_loss.item()
-        ddp_loss[2] += len(data)
+        ddp_loss[0] += lossD_fake.item()
+        ddp_loss[1] += lossD_real.item()
+        ddp_loss[2] += lossG.item()
+        ddp_loss[3] += len(data)
 
         Glrsched.step()
         Dlrsched.step()
 
     dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
     if rank == 0:
+        d_fake = ddp_loss[0] / ddp_loss[3]
+        d_real = ddp_loss[1] / ddp_loss[3]
+        g = ddp_loss[2] / ddp_loss[3]
         print(
-            "Train Epoch: {} \tD_Loss: {:.6f}, G_Loss: {:.6f}".format(
-                epoch, ddp_loss[0] / ddp_loss[2], ddp_loss[1] / ddp_loss[2]
+            "Train Epoch: {} \tD_fake: {:.6f}, D_real: {:.6f}, G_Loss: {:.6f}".format(
+                epoch, d_fake, d_real, g
             )
         )
 
