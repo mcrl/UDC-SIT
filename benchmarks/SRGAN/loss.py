@@ -16,25 +16,25 @@ class GeneratorLoss(nn.Module):
         else:
             self.loss_network = None
         self.mse_loss = nn.MSELoss()
-        self.tv_loss = TVLoss()
+        self.bce_loss = nn.BCELoss()
 
-    def forward(self, out_labels, out_images, target_images):
+    def forward(self, fake_out, fake_img, target):
         # Image Loss
-        image_loss = self.mse_loss(out_images, target_images)
+        mse_loss = self.mse_loss(fake_img, target)
 
         # Adversarial Loss
-        adversarial_loss = torch.mean(1 - out_labels)
+        bce_loss = self.bce_loss(fake_out, torch.ones_like(fake_out))
 
-        # TV Loss
-        tv_loss = self.tv_loss(out_images)
-        total_loss = image_loss + 0.001 * adversarial_loss + 2e-8 * tv_loss
+        # intermediate results
+        total_loss = bce_loss + mse_loss
 
         # Perception Loss
+        # only applied to Feng dataset
         if self.use_perception_loss:
-            perception_loss = self.mse_loss(
-                self.loss_network(out_images), self.loss_network(target_images)
-            )
-            total_loss += 0.006 * perception_loss
+            vgg_outimage = self.loss_network(fake_img)
+            vgg_targetimage = self.loss_network(target)
+            vgg_loss = self.mse_loss(vgg_outimage, vgg_targetimage.detach())
+            total_loss += 0.006 * vgg_loss
         return total_loss
 
 
