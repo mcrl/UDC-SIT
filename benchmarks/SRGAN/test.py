@@ -3,6 +3,7 @@ import imageio
 import os
 from argparse import ArgumentParser
 import tqdm
+import logging
 
 import torch
 from torch import nn
@@ -25,6 +26,7 @@ def test(
     save_image=False,
     save_dir=None,
     experiment_name=None,
+    logger=None,
 ):
     global img_save_function
     model.eval()
@@ -46,16 +48,18 @@ def test(
             ddp_loss[1] += ssim
             ddp_loss[2] += len(data)
 
+            if logger:
+                msg = f"Img name: {img_name}, PSNR: {psnr:.4f}, SSIM: {ssim:.4f}"
+                logger.info(msg)
+
             if save_image and save_dir is not None:
                 filename = f"{experiment_name}_{img_name}_{psnr:.4f}_{ssim:.4f}.png"
                 img_save_function(output, os.path.join(save_dir, filename))
-            break
-
-    print(
-        "Test set: Average PSNR: {:.4f}, Average SSIM: {:.4f}".format(
-            ddp_loss[0] / ddp_loss[2], ddp_loss[1] / ddp_loss[2]
-        )
-    )
+    msg = f"Test set: Average PSNR: {ddp_loss[0] / ddp_loss[2]:.4f}, Average SSIM: {ddp_loss[1] / ddp_loss[2]:.4f}"
+    if logger is not None:
+        logger.info(msg)
+    else:
+        print(msg)
 
 
 def main():
@@ -88,6 +92,13 @@ def main():
     model.load_state_dict(to_load, strict=False)
     print("Done!", flush=True)
 
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(f"logs/{args.name}_test.log")
+    logger.addHandler(handler)
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
+
     print("Creating test loader...", end=" ", flush=True)
     test_loader = DataLoader(
         test_dataset,
@@ -107,6 +118,7 @@ def main():
         save_image=True,
         save_dir=save_dir,
         experiment_name=args.name,
+        logger=logger,
     )
 
 
