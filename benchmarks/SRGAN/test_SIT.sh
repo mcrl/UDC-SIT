@@ -1,8 +1,8 @@
 #!/bin/bash
 
 name="UDC-SIT" # dataset name
-channels=4 # feng dataset has 3 channels
-norm="norm" # feng dataset use tone mapping for normalization
+channels=4 # UDC-SIT dataset has 4 channels
+norm="norm" # UDC-SIT dataset use normalization for normalization
 
 test_gt="data/${name}/validation/GT"
 test_input="data/${name}/validation/input"
