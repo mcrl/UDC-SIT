@@ -4,8 +4,8 @@ name="UDC-SIT" # dataset name
 channels=4 # UDC-SIT dataset has 4 channels
 norm="norm" # UDC-SIT dataset use normalization for normalization
 
-test_gt="data/${name}/validation/GT"
-test_input="data/${name}/validation/input"
+test_gt="data/${name}/test/GT"
+test_input="data/${name}/test/input"
 save_dir="results/${name}"
 model_path="experiments/SRGAN_${name}/final/Gmodel.pth"
 
