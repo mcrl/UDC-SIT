@@ -1,8 +1,8 @@
 #!/bin/bash
 
-dataset="Feng"
-mapping="tonemap"
-channels=3
+dataset="Feng" # dataset name
+mapping="tonemap" # Feng dataset use tone mapping for normalization
+channels=3 # Feng dataset has 3 channels
 
 train_input="data/${dataset}/training/input"
 train_gt="data/${dataset}/training/GT"

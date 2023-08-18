@@ -1,8 +1,8 @@
 #!/bin/bash
 
-dataset="UDC-SIT"
-mapping="norm"
-channels=4
+dataset="UDC-SIT" # dataset name
+mapping="norm" # UDC-SIT dataset use normalization for normalization
+channels=4 # UDC-SIT dataset has 4 channels
 
 train_input="data/${dataset}/training/input"
 train_gt="data/${dataset}/training/GT"
