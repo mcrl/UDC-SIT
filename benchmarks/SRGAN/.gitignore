@@ -12,3 +12,8 @@ results
 
 data/*
 *.csv
+
+!train_SIT.sh
+!train_Feng.sh
+!test_SIT.sh
+!test_Feng.sh
