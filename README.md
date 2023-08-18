@@ -14,8 +14,8 @@ Under Display Camera (UDC) faces challenges related to image degradation, includ
 
 
 # Data versions and structure:
-You can download our dataset at [our UDC-SIT repository](https://www.dropbox.com/s/9j0v2nnvr0eo91g/UDC-SIT.tar.gz?dl=0).
-
+You can download our dataset at [our UDC-SIT repository](https://www.dropbox.com/scl/fi/4jtsxjm4xx8q375dt9i9x/UDC-SIT-v2.tar.gz?rlkey=w202pw16w402izohsq2kldpd3&dl=0).
+Or, you can download by `wget https://jinpyo.kim/data/UDC-SIT-v2.tar.gz`.
 
 # How can I use this?
 You can download the dataset from the link above. When you conduct training, validation, and inference, just normalize in your PyTorch DataLoader as is generally being done in most image restoration DNN models. We recommend to train your model using `.npy` format with 4 channels rather than converting it to a 3 channels RGB domain. Note that our dataset is in Low Dynamic Range (LDR). Therefore, you don't have to conduct tone-mapping. You can visualize our dataset by running `./dataset/visualize_sit.py`, allowing for a visual inspection.
