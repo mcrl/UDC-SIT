@@ -39,10 +39,11 @@ The dataset is created by the authors of the paper as well as the members of the
 # Licences 
 Copyright (c) 2023 Thunder Research Group
 
-All software for benchmark Deep Neural Network (DNN) models adheres to the license of the original authors. You can find the original source codes and their respective licenses for ECFNet, UDC-UNet, DISCNet, and Uformer in the links below.
+All software for benchmark Deep Neural Network (DNN) models adheres to the license of the original authors. You can find the original source codes and their respective licenses for ECFNet, UDC-UNet, DISCNet, Uformer, and SRGAN in the links below.
 - ECFNet (https://github.com/zhuyr97/ECFNet)
 - UDC-UNet (https://github.com/J-FHu/UDCUNet)
 - DISCNet (https://github.com/jnjaby/DISCNet)
 - Uformer (https://github.com/ZhendongWang6/Uformer)
+- SRGAN (https://github.com/leftthomas/SRGAN)
 
 In addition, UDC-SIT dataset is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). This means that you are allowed to freely utilize, share, and modify this work under the condition of properly attributing the original author, distributing any derived works under the same license, and utilizing it exclusively for non-commercial purposes.
