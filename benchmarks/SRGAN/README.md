@@ -66,4 +66,6 @@ bash test_SIT.sh
 
 ## Acknowledgement
 
-+ TBD
++ Our work is motivated by [Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network](https://arxiv.org/abs/1609.04802). We appreciate the authors' effort.
++ Our work is motivated by open-sourced efforts of [SRGAN Pytorch implementation](https://github.com/leftthomas/SRGAN).
+We appreciate their effort. For more detail, refer to aforementioned repositories.
