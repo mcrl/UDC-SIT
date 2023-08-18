@@ -25,7 +25,7 @@ data
 |  |- training
 |  |  |- GT
 |  |  `- input
-|  `- validation
+|  `- validation # We used the test set of the dataset for validation AND test purpose.
 |     |- GT
 |     `- input
 `- UDC-SIT
