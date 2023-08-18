@@ -2,7 +2,11 @@
 
 ## Modifications
 
-+ TBD
++ We apply following normalization to each dataset
+  + Feng dataset: apply tonemapping (`x = x / (x + 0.25)`)
+  + UDC-SIT dataset: apply normalization (`x = x / 1024`)
++ We do not use upsample blocks because the input size and the output size matches.
+  + We attach 0 upsample blocks.
 
 ## Dependencies
 
@@ -12,31 +16,42 @@ We use the same environment with ECFNet benchmark. Refer to `README.md` of the e
 
 ### Data Preparation
 
-TBD. The descrtiption following is not updated!
++ For Feng dataset, we use `ZTE_new_5` images for input images.
++ Please prepare datasets as following description.
 
 ```plain
 data
-|- training
-|  |- input
-|  `- GT
-|- validation
-|  |- input
-|  `- GT
-`- test
-   |- input
-   `- GT
+|- Feng
+|  |- training
+|  |  |- GT
+|  |  `- input
+|  `- validation
+|     |- GT
+|     `- input
+`- UDC-SIT
+   |- training
+   |  |- GT
+   |  `- input
+   |- validation
+   |  |- GT
+   |  `- input
+   `- test
+      |- GT
+      `- input
 ```
 
 ### Train
 
 ```bash
-bash train-ecfnet.sh
+bash train_Feng.sh
+bash train_SIT.sh
 ```
 
 ### Test
 
 ```bash
-bash test.sh
+bash test_Feng.sh
+bash test_SIT.sh
 ```
 
 ## Miscellaneous Notes
