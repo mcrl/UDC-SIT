@@ -3,12 +3,12 @@ from pathlib import Path
 import argparse
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import functools
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import tqdm
+import logging
 
 from torch.utils.data import Subset
 from torch.utils.data.distributed import DistributedSampler
@@ -38,7 +38,11 @@ from torchmetrics.functional import (
     structural_similarity_index_measure,
 )
 
+from util import setup_img_save_function
+
+
 bceloss = nn.BCELoss()
+logger = None
 
 
 def print_root(rank, msg):
@@ -73,6 +77,7 @@ def train(
     Gloss_criterion,
     sampler=None,
 ):
+    global logger
     ddp_loss = torch.zeros(4).to(rank)
     if sampler:
         sampler.set_epoch(epoch)
@@ -86,7 +91,6 @@ def train(
         # (1) Update Discriminator Network
         #
         Dmodel.zero_grad()
-        Gmodel.zero_grad()
         real_out = Dmodel(target)
         lossD_real = bceloss(real_out, torch.ones_like(real_out))
         lossD_real.backward()
@@ -103,7 +107,7 @@ def train(
 
         Gmodel.zero_grad()
         fake_out = Dmodel(fake_img)
-        lossG = Gloss_criterion(fake_out, fake_img, target)
+        lossG = Gloss_criterion(fake_out.detach(), fake_img, target)
         lossG.backward()
 
         Gopt.step()
@@ -121,11 +125,8 @@ def train(
         d_fake = ddp_loss[0] / ddp_loss[3]
         d_real = ddp_loss[1] / ddp_loss[3]
         g = ddp_loss[2] / ddp_loss[3]
-        print(
-            "Train Epoch: {} \tD_fake: {:.6f}, D_real: {:.6f}, G_Loss: {:.6f}".format(
-                epoch, d_fake, d_real, g
-            )
-        )
+        msg = f"Train Epoch {epoch}: D_fake: {d_fake:.6f}, D_real: {d_real:.6f}, G_Loss: {g:.6f}"
+        logger.info(msg)
 
 
 def test(
@@ -138,6 +139,7 @@ def test(
 ):
     Gmodel.eval()
     ddp_loss = torch.zeros(3).to(rank)
+    global logger
 
     iter_bar = tqdm.tqdm(test_loader) if rank == 0 else test_loader
     with torch.no_grad():
@@ -151,16 +153,14 @@ def test(
             ddp_loss[1] += structural_similarity_index_measure(output, target)
             ddp_loss[2] += len(data)
             if save_image and save_dir is not None:
-                save_image(output, os.path.join(save_dir, img_name))
+                img_savename = f"{img_name[0].split('.')[0]}_epoch_{epoch}.png"
+                save_image(output, os.path.join(save_dir, img_savename))
 
     dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
 
     if rank == 0 and epoch is not None:
-        print(
-            "Test set: Average PSNR: {:.4f}, Average SSIM: {:.4f}".format(
-                ddp_loss[0] / ddp_loss[2], ddp_loss[1] / ddp_loss[2]
-            )
-        )
+        msg = f"Epoch {epoch}: Average PSNR: {ddp_loss[0] / ddp_loss[2]:.4f}, Average SSIM: {ddp_loss[1] / ddp_loss[2]:.4f}"
+        logger.info(msg)
 
 
 def load_states(experiment_name: str):
@@ -187,6 +187,15 @@ def fsdp_main(rank, world_size, opt):
     setup(rank, world_size)
     torch.cuda.set_device(rank)
     print_root(rank, f"Running on rank {rank} of {world_size}")
+
+    global logger
+    if rank == 0:
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.INFO)
+        handler = logging.FileHandler(f"logs/{opt.experiment_name}_srgan_{rank}.log")
+        logger.addHandler(handler)
+        handler = logging.StreamHandler()
+        logger.addHandler(handler)
 
     train_dataset = my_dataset(
         opt.train_input, opt.train_gt, opt.mapping, opt.patch_size
@@ -341,6 +350,13 @@ def fsdp_main(rank, world_size, opt):
     print_root(rank, f"Number of iterations per epoch: {iterations_per_epoch}")
     print_root(rank, f"Number of epochs: {num_epochs}")
 
+    image_savefunction = setup_img_save_function(channels)
+
+    img_savepath = opt.img_savepath
+    if rank == 0:
+        if not os.path.exists(img_savepath):
+            os.makedirs(img_savepath)
+
     init_start_event.record()
     for epoch in range(start_epoch, num_epochs + 1):
         print_root(rank, f"Training at epoch {epoch}")
@@ -361,7 +377,14 @@ def fsdp_main(rank, world_size, opt):
         )
         if epoch % opt.validation_interval == 0:
             print_root(rank, f"Testing at epoch {epoch}")
-            test(Gmodel, rank, validation_loader, epoch=epoch)
+            test(
+                Gmodel,
+                rank,
+                validation_loader,
+                epoch=epoch,
+                save_dir=img_savepath,
+                save_image=image_savefunction,
+            )
 
         if epoch % opt.save_interval == 0:
             print_root(rank, f"Saving at epoch {epoch}")
@@ -449,6 +472,7 @@ def main():
     saving_group = parser.add_argument_group("Experiment Saving")
     saving_group.add_argument("--experiment-name", type=str, default="SRGAN")
     saving_group.add_argument("--save-interval", type=int, default=100)
+    saving_group.add_argument("--img-savepath", type=str, required=True)
 
     load_group = parser.add_argument_group("Experiment Loading")
     load_group.add_argument(

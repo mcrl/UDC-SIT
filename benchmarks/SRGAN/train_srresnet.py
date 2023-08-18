@@ -9,6 +9,7 @@ import functools
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import tqdm
+import logging
 
 from torch.utils.data import Subset
 from torch.utils.data.distributed import DistributedSampler
@@ -38,7 +39,12 @@ from torchmetrics.functional import (
     structural_similarity_index_measure,
 )
 
+
+from util import setup_img_save_function
+
 MSE_MODULE = nn.MSELoss()
+IMG_SAVE = None
+logger = None
 
 
 def print_root(rank, msg):
@@ -68,15 +74,18 @@ def train(
     epoch,
     sampler=None,
 ):
+    global logger
     ddp_loss = torch.zeros(2).to(rank)
     if sampler:
         sampler.set_epoch(epoch)
-
+    bc = 0
     train_bar = tqdm.tqdm(train_loader) if rank == 0 else train_loader
     for data, target in train_bar:
+        bc += 1
         data = data.to(rank)
         target = target.to(rank)
 
+        Gmodel.zero_grad()
         output = Gmodel(data)
         mseloss = MSE_MODULE(output, target)
         mseloss.backward()
@@ -88,9 +97,8 @@ def train(
 
     dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
     if rank == 0:
-        print(
-            "Train Epoch: {} \tG_Loss: {:.6f}".format(epoch, ddp_loss[0] / ddp_loss[1])
-        )
+        msg = f"Train Epoch: {epoch} \tG_Loss: {ddp_loss[0] / ddp_loss[1]}"
+        logger.info(msg)
 
 
 def test(
@@ -101,6 +109,7 @@ def test(
     save_dir=None,
     epoch=None,
 ):
+    global logger
     Gmodel.eval()
     ddp_loss = torch.zeros(3).to(rank)
 
@@ -115,17 +124,15 @@ def test(
             ddp_loss[0] += peak_signal_noise_ratio(output, target)
             ddp_loss[1] += structural_similarity_index_measure(output, target)
             ddp_loss[2] += len(data)
+            img_savename = f"{img_name[0].split('.')[0]}_epoch_{epoch}.png"
             if save_image and save_dir is not None:
-                save_image(output, os.path.join(save_dir, img_name))
+                save_image(output, os.path.join(save_dir, img_savename))
 
     dist.all_reduce(ddp_loss, op=dist.ReduceOp.SUM)
 
     if rank == 0 and epoch is not None:
-        print(
-            "Test set: Average PSNR: {:.4f}, Average SSIM: {:.4f}".format(
-                ddp_loss[0] / ddp_loss[2], ddp_loss[1] / ddp_loss[2]
-            )
-        )
+        msg = f"Epoch {epoch}: Average PSNR: {ddp_loss[0] / ddp_loss[2]}, Average SSIM: {ddp_loss[1] / ddp_loss[2]}"
+        logger.info(msg)
 
 
 def load_states(experiment_name: str):
@@ -151,6 +158,15 @@ def load_states(experiment_name: str):
 def fsdp_main(rank, world_size, opt):
     setup(rank, world_size)
     print_root(rank, f"Running on rank {rank} of {world_size}")
+
+    global logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
+    if rank == 0:
+        handler = logging.FileHandler(f"logs/{opt.experiment_name}.log")
+        logger.addHandler(handler)
 
     train_dataset = my_dataset(
         opt.train_input, opt.train_gt, opt.mapping, opt.patch_size
@@ -216,9 +232,10 @@ def fsdp_main(rank, world_size, opt):
     init_start_event = torch.cuda.Event(enable_timing=True)
     init_end_event = torch.cuda.Event(enable_timing=True)
 
+    global IMG_SAVE
     channels = opt.channels
-    use_perception_loss = True if channels == 3 else False
     Gmodel = Generator(io_channels=channels).to(rank)
+    IMG_SAVE = setup_img_save_function(channels)
 
     # Activation Checkpoint Wrapper
     if opt.aggressive_checkpointing:
@@ -272,6 +289,12 @@ def fsdp_main(rank, world_size, opt):
     print_root(rank, f"Number of epochs: {num_epochs}")
 
     init_start_event.record()
+    img_savepath = opt.img_savepath
+
+    if rank == 0:
+        if not os.path.exists(img_savepath):
+            os.makedirs(img_savepath)
+
     for epoch in range(start_epoch, num_epochs + 1):
         print_root(rank, f"Training at epoch {epoch}")
         train(
@@ -286,7 +309,14 @@ def fsdp_main(rank, world_size, opt):
         )
         if epoch % opt.validation_interval == 0:
             print_root(rank, f"Testing at epoch {epoch}")
-            test(Gmodel, rank, validation_loader, epoch=epoch)
+            test(
+                Gmodel,
+                rank,
+                validation_loader,
+                epoch=epoch,
+                save_dir=img_savepath,
+                save_image=IMG_SAVE,
+            )
 
         if epoch % opt.save_interval == 0:
             print_root(rank, f"Saving at epoch {epoch}")
@@ -352,6 +382,7 @@ def main():
     saving_group = parser.add_argument_group("Experiment Saving")
     saving_group.add_argument("--experiment-name", type=str, default="SRGAN")
     saving_group.add_argument("--save-interval", type=int, default=100)
+    saving_group.add_argument("--img-savepath", type=str, required=True)
 
     load_group = parser.add_argument_group("Experiment Loading")
     load_group.add_argument(
