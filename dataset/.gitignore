@@ -1,0 +1,11 @@
+# Ignore data directory or symbolic link to data directory
+training
+training/
+validation
+validation/
+test
+test/
+
+# Ignore visualized images
+visualize_sit
+visualize_sit/
