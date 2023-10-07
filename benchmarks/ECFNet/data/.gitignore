@@ -1,0 +1,5 @@
+# Ignore Data Directory or Link to Data Directory
+training
+training/
+validation
+validation/
