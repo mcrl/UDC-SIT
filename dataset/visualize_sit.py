@@ -72,12 +72,13 @@ def save_4ch_npy_png(tensor_to_save, res_dir, fname, save_type):
 
 
 for sub in subdir:
-    load_dir = dir_sit + sub + "/"
+    load_dir = os.path.join(dir_sit, sub)
     # check if the directory exists
     if not os.path.exists(load_dir):
         print("Directory does not exist: {}".format(load_dir))
         continue
-    flist = glob.glob(load_dir + "*.npy")
+    search_path = os.path.join(load_dir, "*.npy")
+    flist = glob.glob(search_path)
     i = 0
     file_count = len(flist)
     pbar = tqdm(flist, total=file_count)
