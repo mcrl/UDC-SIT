@@ -34,9 +34,21 @@
 ## Installation
 
 + Install Python, CUDA, and PyTorch
++ Install `MMCV==1.7.1` with [our repository](https://github.com/mcrl/mmcv-for-UDC-SIT)
+
+```bash
+git clone git@github.com:mcrl/mmcv-for-UDC-SIT.git
+cd mmcv-for-UDC-SIT.git
+pip install -r requirements/optional.txt
+pip install -e . -v
+```
+
+> Installation with `pip`, `conda`, `mim` did not work since Aug. 2023. We ship our workaround.
+
 + Run following command
 
 ```bash
+cd UDC-SIT/benchmarks/UDCUNet
 pip install -r requirements.txt
 python setup.py develop
 ```
