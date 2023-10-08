@@ -34,6 +34,17 @@ def load_npy(filepath):
 
 
 def save_4ch_npy_png(tensor_to_save, res_dir, fname, save_type):
+    file_basename = os.path.basename(fname).replace(".npy", "")
+    if save_type is None:
+        postfix = ".png"
+    else:
+        postfix = "_" + save_type + ".png"
+    output_path = os.path.join(res_dir, save_type, file_basename + postfix)
+
+    # if file exists, skip
+    if os.path.exists(output_path):
+        return
+
     fn_tonumpy = lambda x: x.to("cpu").detach().numpy().transpose(0, 2, 1)
     source_dir = "./background.dng"
     data = rp.imread(source_dir)
@@ -62,12 +73,7 @@ def save_4ch_npy_png(tensor_to_save, res_dir, fname, save_type):
     start = (0, 464)
     end = (3584, 3024)
     newData = newData[start[0] : end[0], start[1] : end[1]]
-    file_basename = os.path.basename(fname).replace(".npy", "")
-    if save_type is None:
-        postfix = ".png"
-    else:
-        postfix = "_" + save_type + ".png"
-    output_path = os.path.join(res_dir, save_type, file_basename + postfix)
+
     imageio.imsave(output_path, newData)
 
 
@@ -84,6 +90,16 @@ for sub in subdir:
     pbar = tqdm(flist, total=file_count)
     for fname in pbar:
         pbar.set_description(fname)
+        file_basename = os.path.basename(fname).replace(".npy", "")
+        if sub is None:
+            postfix = ".png"
+        else:
+            postfix = "_" + sub + ".png"
+        output_path = os.path.join(res_dir, sub, file_basename + postfix)
+
+        # if file exists, skip
+        if os.path.exists(output_path):
+            continue
         npy_to_save = torch.from_numpy(np.float32(load_npy(fname))).permute(2, 0, 1)
         npy_to_save = torch.clamp(npy_to_save, 0, 1)
         save_4ch_npy_png(npy_to_save, res_dir, fname, sub)
