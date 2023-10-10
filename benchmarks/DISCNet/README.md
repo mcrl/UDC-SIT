@@ -63,6 +63,11 @@ python generate-metainfo.py \
 
 You may modify `psf.npy` file location. Refer to `python generate-metainfo.py --help`.
 
+### Reference to Train/Test Command
+
++ We run training in conda environment
++ If you use different setup (i.e. SLURM), refer to [BasicSR](https://github.com/XPixelGroup/BasicSR/blob/master/docs/TrainTest.md) documentation.
+
 ### Train
 
 + Modify `option/train/train.yml` to specify data path
