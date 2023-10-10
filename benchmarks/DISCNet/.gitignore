@@ -136,3 +136,5 @@ venv.bak/
 feng-data
 *.sh
 !make.sh
+!test.sh
+!train.sh
