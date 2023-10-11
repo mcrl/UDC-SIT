@@ -8,7 +8,7 @@ from PIL import Image
 def save_4ch_npy_to_img(
     img_ts: torch.Tensor,
     img_path: str,
-    dng_info="/home/n5/chanwoo/background.dng",
+    dng_info="../../background.dng",
 ):
     if dng_info is None:
         raise RuntimeError(
