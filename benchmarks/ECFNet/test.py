@@ -19,7 +19,7 @@ from datasets.dataset_pairs_npy import my_dataset_eval
 def _save_4ch_npy_to_img(
     img_ts,
     img_path,
-    dng_info="/home/n5/chanwoo/background.dng",
+    dng_info="../../background.dng",
 ):
     if dng_info is None:
         raise RuntimeError(
