@@ -25,19 +25,21 @@ def generate_metainfo(dirpath, psf, mode):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--train-gt",
+        "--train-input",
         type=str,
         required=True,
         help="Path to train ground truth directory",
     )
     parser.add_argument(
-        "--val-gt",
+        "--val-input",
         type=str,
         required=True,
         help="Path to validation ground truth directory",
     )
     parser.add_argument(
-        "--test-gt", type=str, required=True, help="Path to test ground truth directory"
+        "--test-input",
+        type=str,
+        help="(Optional) Path to test input directory. As of 11.01.2023, we do not provide test GT. So, this is not required.",
     )
     parser.add_argument(
         "--psf-path", type=str, default="sit-train-psf.npy", help="Path to PSF file"
@@ -45,20 +47,21 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.path.exists(args.train_gt):
+    if not os.path.exists(args.train_input):
         raise ValueError("Train ground truth file does not exist")
-    if not os.path.exists(args.val_gt):
+    if not os.path.exists(args.val_input):
         raise ValueError("Validation ground truth file does not exist")
-    if not os.path.exists(args.test_gt):
-        raise ValueError("Test ground truth file does not exist")
+    if args.test_input and not os.path.exists(args.test_input):
+        raise ValueError("Validation ground truth file does not exist")
     if not os.path.exists(args.psf_path):
         raise ValueError("PSF file does not exist")
     if not args.psf_path.endswith(".npy"):
         raise ValueError("PSF file must be a numpy file")
 
-    generate_metainfo(args.train_gt, args.psf_path, "train")
-    generate_metainfo(args.val_gt, args.psf_path, "val")
-    generate_metainfo(args.test_gt, args.psf_path, "test")
+    generate_metainfo(args.train_input, args.psf_path, "train")
+    generate_metainfo(args.val_input, args.psf_path, "val")
+    if args.test_input:
+        generate_metainfo(args.test_input, args.psf_path, "test")
 
 
 if __name__ == "__main__":
