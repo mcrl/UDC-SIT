@@ -56,9 +56,9 @@ bash make.sh
 
 ```bash
 python generate-metainfo.py \
-  --train-gt /path/to/train/gt \
-  --val-gt /path/to/val/gt \
-  --test-gt /path/to/test/gt
+  --train-input /path/to/train/input \ # Required
+  --val-input /path/to/val/input \ # Required
+  --test-input /path/to/test/input # Optional
 ```
 
 You may modify `psf.npy` file location. Refer to `python generate-metainfo.py --help`.
