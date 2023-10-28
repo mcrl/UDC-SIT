@@ -1,0 +1,59 @@
+name: DISCNet-SIT4-Test
+model_type: PSFResModel
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+scale: 1
+
+datasets:
+  test_1:
+    name: SIT4-all
+    type: PairedImgPSFNpyDataset
+    lq_map_type: norm
+    gt_map_type: norm
+    lq_map_range: 1023.
+    gt_map_range: 1023.
+    io_backend:
+      type: npy
+    folders:
+      rot_5:
+        dataroot_lq: data/validation/input
+        dataroot_gt: data/validation/GT
+        meta_info_file: meta-info-files/test-metainfo.txt
+        psf_path: sit-train-psf.npy
+
+
+network_g:
+  type: DISCNet
+  in_nc: 4
+  out_nc: 4
+  nf: 32
+  ns: 4
+  multi_scale: true
+  kernel_cond: img-psf
+  psf_nc: 5
+  kpn_sz: 5
+
+# path
+path:
+  pretrain_model_g: experiments/DISCNet-SIT4-Benchmark/models/latest_G.pth
+  strict_load: true
+
+# validation settings
+val:
+  save_img: true
+  save_npy: true
+  dng_info: background.dng
+  max_pxl: 1023.
+  clamp:
+    min: 0.
+    max: 1.
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false

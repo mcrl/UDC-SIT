@@ -1,0 +1,57 @@
+name: UDCUNet-SIT4-Test
+model_type: UDCModel
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+scale: 1
+
+datasets:
+  test_1:
+    name: SIT4-all
+    type: PairedImgPSFNpyDataset
+    lq_map_type: norm
+    gt_map_type: norm
+    lq_map_range: 1023.
+    gt_map_range: 1023.
+    io_backend:
+      type: npy
+    folders:
+      rot_5:
+        dataroot_lq: dataset/test/input
+        dataroot_gt: dataset/test/GT
+
+
+# network structures
+network_g:
+  type: UDCUNet
+  nf: 32
+  in_nc: 4
+  out_nc: 4
+  depths: [2,2,2,8,2,2,2]
+  DyK_size: 3
+
+# path
+path:
+  pretrain_network_g: UDCUNet-SIT4-pretrained.pth
+  strict_load_g: true
+  param_key_g: 'params_ema'
+
+# validation settings
+val:
+  save_img: true
+  save_npy: false
+  dng_info: background.dng
+  max_pxl: 1023.
+  clamp:
+    min: 0.
+    max: 1.
+  suffix: ~
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
