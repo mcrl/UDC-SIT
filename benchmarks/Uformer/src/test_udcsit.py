@@ -33,6 +33,8 @@ import datetime
 from pdb import set_trace as stx
 
 import dataset
+from utils.dataset_utils import to_small_batches, merge_patches
+import image_utils
 
 best_psnr, best_epoch, best_iter = 0, 0, 0
 
@@ -60,12 +62,12 @@ with open(logname_test,'a') as f:
     f.write(str(opt)+'\n')
     f.write(str(model_restoration)+'\n')
 
-
 ######### DataParallel ########### 
 model_restoration = torch.nn.DataParallel (model_restoration) 
 model_restoration.cuda()
 
-path_chk_rest = os.path.join(model_dir, 'model_best.pth') #opt.pretrain_weights 
+path_chk_rest = os.path.join(model_dir, 'model_best.pth')
+print("Loading chekpoint......", path_chk_rest)
 utils.load_checkpoint(model_restoration,path_chk_rest) 
 
 ######### DataLoader ###########
@@ -79,50 +81,45 @@ len_testset = test_dataset.__len__()
 print("sizeof test set: ", len_testset)
 
 torch.cuda.empty_cache()
-
+#### Evaluation ####
+psnr_test_iter, ssim_test_iter, psnr_test_rgb, ssim_test_rgb = [], [], [], []
 with torch.no_grad():
     model_restoration.eval()
-    psnr_test = []
-    ssim_test = []
-    for i, data_test in enumerate((test_loader), 1):
-        target, input_, target_fnames, restored_fnames = data_test[0].cuda(), data_test[1].cuda(), data_test[2], data_test[3]
+    for ii, data_test in enumerate((test_loader), 1):
+        target, input_, target_fnames, restored_fnames = data_test[0], data_test[1].cuda(), data_test[2], data_test[3]
         num_img = target.size()[0]
 
-        input_small = utils.dataset_utils.to_small_batches(input_)
-        restored_small = model_restoration(input_small)
+        input_small = to_small_batches(input_)
+        restored_small = model_restoration(input_small).cpu().detach()
 
-        restored = utils.dataset_utils.merge_patches(opt, restored_small, input_.shape[0])
+        restored = merge_patches(opt, restored_small, input_.shape[0])
+        restored = torch.clamp(restored,0,1)
+
+        psnr_test_rgb = image_utils.each_PSNR(restored, target)
+        ssim_test_rgb = image_utils.calc_metric(restored, target, size_average=False)
+        psnr_test_iter.append(sum(psnr_test_rgb)/len(psnr_test_rgb))
+        ssim_test_iter.append(sum(ssim_test_rgb)/len(ssim_test_rgb))
         
-        target_tensor_temp, restored_tensor_temp = torch.Tensor(target), torch.Tensor(restored)
-        restored = torch.clamp(restored,0,1).cuda()
-        restored_PSNR = round(utils.batch_PSNR(restored, target, True).item(),4)
-        restored_SSIM = round(utils.batch_SSIM(restored, target, True).item(),4)
-
         source_img = '../../background.dng'
-        
         for j in range(restored.shape[0]):
-            restored_fnames_j = restored_fnames[j]
-            output_name = restored_fnames_j + '.png'
-            #custom_utils.NPYtoPNG(source_img,restored[j],res_test_dir,'test',output_name)
-        
-        restored = torch.clamp(restored,0,1)     
-        psnr_test.append(utils.batch_PSNR(restored, target, True).item())
-        ssim_test.append(utils.batch_SSIM(restored, target, True).item())
+            fname = target_fnames[j] + ".png"
+            custom_utils.NPYtoPNG(source_img,restored[j],res_test_dir,'test',fname)        
 
-        psnr_iter = sum(psnr_test)/len(psnr_test)
-        ssim_iter = sum(ssim_test)/len(ssim_test)
-        
-        print("Iter=%s | [PSNR=%.4f, SSIM=%.4f]" % (str(i), psnr_iter,ssim_iter))
-        
-    psnr_test = sum(psnr_test)/len(psnr_test)
-    ssim_test = sum(ssim_test)/len(ssim_test)
+        for i in range(restored.shape[0]):
+            restored_fname = restored_fnames[i]
+            print("[ TEST %d/%d | %s] PSNR-test=%.4f, SSIM-test=%.4f, PSNR-avg=%.4f, SSIM-avg=%.4f" 
+            % ((ii-1)*opt.batch_size_val+i+1, len_testset, restored_fname, 
+            psnr_test_rgb[i], ssim_test_rgb[i], sum(psnr_test_iter)/len(psnr_test_iter), 
+            sum(ssim_test_iter)/len(ssim_test_iter))) # avg PSNR of this iteration
 
-    print("Inference finished.")
-    print("[PSNR-test=%.4f, SSIM-test=%.4f]" % (psnr_test,ssim_test))
-
-    with open(logname_test,'a') as logF:
-        logF.write("PSNR-test=%.4f, PSNR-test=%.4f]" \
-                     % (psnr_test,ssim_test)+'\n')
+        with open(logname_test,'a') as logF:
+            for i in range(restored.shape[0]):
+                restored_fname = restored_fnames[i].split('.')[0]
+                logF.write("%s, %.4f, %.4f" % (restored_fname, psnr_test_rgb[i], ssim_test_rgb[i])+'\n')
     torch.cuda.empty_cache()
+
+print("AVG of TEST PSNR: ", sum(psnr_test_iter)/len(psnr_test_iter))
+print("AVG of TEST SSIM: ", sum(ssim_test_iter)/len(ssim_test_iter))
+print("Total images tested: ", len_testset)
 
 print("Now time is : ",datetime.datetime.now().isoformat())

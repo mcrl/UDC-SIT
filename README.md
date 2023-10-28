@@ -1,9 +1,7 @@
 # UDC-SIT: A Real-World Dataset for Under-Display Cameras
 
 This repository contains the dataset and benchmark DNN models of the following paper. The datasheets for datasets is available in this repository as a pdf file.
-> **UDC-SIT: A Real-World Dataset for Under-Display Cameras**<br>
-> Kyusu Ahn, Byeonghyun Ko, HyunGyu Lee, Chanwoo Park, and Jaejin Lee<br>
-> Under review on Neural Information Processing Systems (**NeurIPS**), 2023<br>
+> Kyusu Ahn, Byeonghyun Ko, HyunGyu Lee, Chanwoo Park, and Jaejin Lee. **UDC-SIT: A Real-World Dataset for Under-Display Cameras.** NeurIPS 2023: Proceedings of the 37th Conference on Neural Information Processing Systems Datasets and Benchmarks Track, New Orleans, Louisiana, USA, December 2023. To appear.<br>
 
 # What is UDC-SIT?
 
@@ -15,11 +13,11 @@ Under Display Camera (UDC) faces challenges related to image degradation, includ
 
 # Data versions and structure
 
-You can download our dataset at [our UDC-SIT repository](https://www.dropbox.com/scl/fi/4jtsxjm4xx8q375dt9i9x/UDC-SIT-v2.tar.gz?rlkey=w202pw16w402izohsq2kldpd3&dl=0).
+You can acquire the download link of our dataset at [our Research Group's hompage](https://thunder.snu.ac.kr/?page_id=64).
 
 # How can I use this?
 
-You can download the dataset from the link above. When you conduct training, validation, and inference, just normalize in your PyTorch DataLoader as is generally being done in most image restoration DNN models. We recommend to train your model using `.npy` format with 4 channels rather than converting it to a 3 channels RGB domain. Note that our dataset is in Low Dynamic Range (LDR). Therefore, you don't have to conduct tone-mapping. You can visualize our dataset by running `./dataset/visualize_sit.py`, allowing for a visual inspection.
+You can download the dataset from the link above. When you conduct training, validation, and inference, just normalize in your PyTorch DataLoader as is generally being done in most image restoration DNN models. We recommend to train your model using `.npy` format with 4 channels rather than converting it to a 3 channels RGB domain. Note that our dataset is in Low Dynamic Range (LDR). Therefore, you don't have to conduct Reinhard tone-mapping. You can visualize our dataset by running `./dataset/visualize_sit.py`, allowing for a visual inspection.
 
 # Annotation details
 
@@ -40,6 +38,8 @@ The dataset is created by the authors of the paper as well as the members of the
 
 Copyright (c) 2023 Thunder Research Group
 
+UDC-SIT dataset is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). This means that you are allowed to freely utilize, share, and modify this work under the condition of properly attributing the original author, distributing any derived works under the same license, and utilizing it exclusively for non-commercial purposes.
+
 All software for benchmark Deep Neural Network (DNN) models adheres to the license of the original authors. You can find the original source codes and their respective licenses for ECFNet, UDC-UNet, DISCNet, Uformer, and SRGAN in the links below.
 
 - ECFNet (<https://github.com/zhuyr97/ECFNet>)
@@ -48,4 +48,4 @@ All software for benchmark Deep Neural Network (DNN) models adheres to the licen
 - Uformer (<https://github.com/ZhendongWang6/Uformer>)
 - SRGAN (<https://github.com/leftthomas/SRGAN>)
 
-In addition, UDC-SIT dataset is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). This means that you are allowed to freely utilize, share, and modify this work under the condition of properly attributing the original author, distributing any derived works under the same license, and utilizing it exclusively for non-commercial purposes.
+

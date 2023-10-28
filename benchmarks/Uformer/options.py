@@ -68,7 +68,7 @@ class Options():
 
 
         # ddp
-        parser.add_argument("--local_rank", type=int,default=-1,help='DDP parameter, do not modify')#不需要赋值，启动命令 torch.distributed.launch会自动赋值
+        parser.add_argument("--local_rank", type=int,default=-1,help='DDP parameter, do not modify')
         parser.add_argument("--distribute",action='store_true',help='whether using multi gpu train')
         parser.add_argument("--distribute_mode",type=str,default='DDP',help="using which mode to ")
         return parser

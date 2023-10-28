@@ -187,7 +187,6 @@ for epoch in range(start_epoch, opt.nepoch + 1):
                 for j in range(restored.shape[0]):
                     if j < 1:
                         restored_fnames_j = restored_fnames[j]
-                        #print(restored.shape[0], restored_fnames_j)
                         output_name = restored_fnames_j + '.png'
                         custom_utils.NPYtoPNG(source_img,restored[j],res_val_dir,epoch,output_name)
 

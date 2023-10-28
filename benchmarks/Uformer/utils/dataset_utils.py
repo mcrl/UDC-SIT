@@ -78,7 +78,7 @@ def to_small_batches(input_):
 
 # This only works for patch size 1280 x 1280, image size 1792 x 1280
 def merge_patches(opt, patches, num_img):
-    image = torch.zeros((opt.batch_size_val, opt.dd_in, 1792, 1280), dtype=torch.float32)
+    image = torch.zeros((num_img, opt.dd_in, 1792, 1280), dtype=torch.float32)
     num_patches_H, num_patches_W = 2, 1
 
     for i in range(num_img):

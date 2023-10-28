@@ -15,10 +15,12 @@
   + We change image saving function to support 4-channeled `.dng` format.
 
 
-## Installation
+## Dependencies 
 
-+ Install Python, CUDA, and PyTorch
-+ Run following command
++ Python>=3.8.0
++ PyTorch>=2.1.0
++ CUDA>=11.8
++ Other required packages are liste in `requirements.txt`
 
 ```bash
 pip install -r requirements.txt
@@ -27,7 +29,7 @@ pip install -r requirements.txt
 
 ### Train
 
-+ Modify `script/train_udcsit.sh` to specify data path
++ Modify `script/train_udcsit.sh` to specify your data path
 + Run command
 
 ```bash
@@ -36,7 +38,7 @@ sh ./script/train_udcsit.sh
 
 ### Test
 
-+ Modify `script/test_udcsit.sh` to specify data path
++ Modify `script/test_udcsit.sh` to specify your data path
 + Run command
 
 ```bash

@@ -1305,7 +1305,7 @@ class Uformer(nn.Module):
         # Output Projection
         y = self.output_proj(deconv3)
 
-        return x + y if self.dd_in ==3 else y
+        return x + y if self.dd_in == 4 else y
 
     def flops(self):
         flops = 0
