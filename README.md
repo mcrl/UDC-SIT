@@ -1,7 +1,8 @@
 # UDC-SIT: A Real-World Dataset for Under-Display Cameras
 
 This repository contains the dataset and benchmark DNN models of the following paper. The datasheets for datasets is available in this repository as a pdf file.
-> Kyusu Ahn, Byeonghyun Ko, HyunGyu Lee, Chanwoo Park, and Jaejin Lee. **UDC-SIT: A Real-World Dataset for Under-Display Cameras.** NeurIPS 2023: Proceedings of the 37th Conference on Neural Information Processing Systems Datasets and Benchmarks Track, New Orleans, Louisiana, USA, December 2023. To appear.<br>
+> Kyusu Ahn, Byeonghyun Ko, HyunGyu Lee, Chanwoo Park, and Jaejin Lee. **UDC-SIT: A Real-World Dataset for Under-Display Cameras.** NeurIPS 2023: Proceedings of the 37th Conference on Neural Information Processing Systems, Article No. 2962, pp. 67721-67740, New Orleans, USA, December 2023.<br>
+[Paper](https://proceedings.neurips.cc/paper_files/paper/2023/hash/d612971396f825dbf8e0e736f99a1955-Abstract-Datasets_and_Benchmarks.html)
 
 # What is UDC-SIT?
 
@@ -34,6 +35,20 @@ You can download the dataset from the link above. When you conduct training, val
 
 The dataset is created by the authors of the paper as well as the members of the Thunder Research Group at Seoul National University, including Woojin Kim, Gyuseong Lee, Dongyoung Lee, Sangsoo Im, Gwangho Choi, Gyeongje Jo, Yeonkyoung So, Jiheon Seok, Jaehwan Lee, Donghun Choi, and Daeyoung Park, on behalf of universities and research institutions.
 
+# Citation
+
+   If you find our repository useful for your research, please consider citing our paper:
+
+   ```bibtex
+   @InProceedings{ahn2024udc,
+      author    = {Ahn, Kyusu and Ko, Byeonghyun and Lee, HyunGyu and Park, Chanwoo and Lee, Jaejin},
+      title     = {UDC-SIT: A Real-World Dataset for Under-Display Cameras},
+      journal   = {Advances in Neural Information Processing Systems},
+      volume    = {36},
+      year      = {2024},
+   }
+   ```
+
 # Licences
 
 Copyright (c) 2023 Thunder Research Group
@@ -47,5 +62,3 @@ All software for benchmark Deep Neural Network (DNN) models adheres to the licen
 - DISCNet (<https://github.com/jnjaby/DISCNet>)
 - Uformer (<https://github.com/ZhendongWang6/Uformer>)
 - SRGAN (<https://github.com/leftthomas/SRGAN>)
-
-
