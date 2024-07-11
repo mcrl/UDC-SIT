@@ -3,7 +3,7 @@
 This repository contains the dataset and benchmark DNN models of the following paper. The datasheets for datasets is available in this repository as a pdf file.
 > Kyusu Ahn, Byeonghyun Ko, HyunGyu Lee, Chanwoo Park, and Jaejin Lee. **UDC-SIT: A Real-World Dataset for Under-Display Cameras.** NeurIPS 2023: Proceedings of the 37th Conference on Neural Information Processing Systems, Article No. 2962, pp. 67721-67740, New Orleans, USA, December 2023.<br>
 
-[Paper](https://proceedings.neurips.cc/paper_files/paper/2023/hash/d612971396f825dbf8e0e736f99a1955-Abstract-Datasets_and_Benchmarks.html)
+[[Paper](https://proceedings.neurips.cc/paper_files/paper/2023/hash/d612971396f825dbf8e0e736f99a1955-Abstract-Datasets_and_Benchmarks.html)]
 
 # What is UDC-SIT?
 
