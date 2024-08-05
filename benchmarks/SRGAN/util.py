@@ -50,16 +50,8 @@ def save_3ch_npy_to_img(tensor: torch.Tensor, img_path: str):
     # Convert PyTorch tensor to NumPy array
     numpy_array = tensor.cpu().numpy()
 
-    # Normalize and convert to uint8 type
-    minimum = numpy_array.min()
-    maximum = numpy_array.max()
-    delta = maximum - minimum
-    if delta < 1e-6:
-        delta = 1
-    normalized_array = (numpy_array - minimum) / delta
-
     # Convert to uint8 type. Input: 3 channel, output: 3 channel
-    uint8_array = (normalized_array * 255.0).astype(np.uint8)
+    uint8_array = (numpy_array * 255.0).astype(np.uint8)
     uint8_array = np.transpose(uint8_array, (1, 2, 0))
 
     # Convert NumPy array to PIL Image
